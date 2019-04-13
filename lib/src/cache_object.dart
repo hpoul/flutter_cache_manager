@@ -15,6 +15,7 @@ final String columnPath = "relativePath";
 final String columnETag = "eTag";
 final String columnValidTill = "validTill";
 final String columnTouched = "touched";
+final List<String> columns = [columnId, columnUrl, columnPath, columnETag, columnValidTill, columnTouched];
 /**
  *  Flutter Cache Manager
  *
@@ -107,6 +108,17 @@ class CacheObjectProvider {
       return new CacheObject.fromMap(maps.first);
     }
     return null;
+  }
+
+  Future<Map<String, CacheObject>> getBulk(Iterable<String> urls) async {
+    final selection = urls.map((url) => '?').join(',');
+    final List<Map<String, dynamic>> result = await db.query(tableCacheObject,
+      columns: columns, where: "$columnUrl IN ($selection)", whereArgs: urls.toList(growable: false));
+    return Map.fromIterable(
+      result.map((row) => CacheObject.fromMap(row)),
+      key: (cacheObject) => cacheObject.url,
+      value: (cacheObject) => cacheObject,
+    );
   }
 
   Future<int> delete(int id) async {

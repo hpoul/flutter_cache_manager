@@ -90,6 +90,19 @@ class CacheStore {
     return data;
   }
 
+  Future<void> preCacheBulk(Iterable<String> urls) {
+    final loadUrls = urls.where((url) => !_memCache.containsKey(url)).toList();
+    return _getBulkCacheData(loadUrls).then((cacheObjects) {
+      cacheObjects.forEach((url, cacheObject) {
+        _memCache[url] = Future.value(cacheObject);
+      });
+      print("pre cached ${loadUrls.length} objects.");
+    });
+  }
+
+  Future<Map<String, CacheObject>> _getBulkCacheData(Iterable<String> urls) =>
+      _cacheObjectProvider.then((provider) => provider.getBulk(urls));
+
   void _scheduleCleanup() {
     if (_scheduledCleanup != null) {
       return;
